@@ -1,0 +1,78 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>TFSF Engage</title>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <div class="container">
+      <header>
+        <h1>TFSF Engage</h1>
+      </header>
+      <section class="controls">
+        <label>
+          Mode
+          <select id="mode">
+            <option value="comment_under_post">Comment under post</option>
+            <option value="dm_sales_pitch">DM sales pitch</option>
+            <option value="dm_influencer_pitch">DM influencer pitch</option>
+            <option value="dm_response">DM response</option>
+          </select>
+        </label>
+        <label>
+          Model
+          <select id="model">
+            <option value="gpt-5" selected>gpt-5 (default)</option>
+            <option value="gpt-5-mini">gpt-5-mini</option>
+            <option value="gpt-4o">gpt-4o</option>
+          </select>
+        </label>
+        <label class="grow">
+          Corpus
+          <input id="corpusPath" type="text" placeholder="auto by mode (override path optional)" />
+        </label>
+      </section>
+
+      <section class="manual">
+        <textarea id="manualPrompt" placeholder="Optional manual prompt..."></textarea>
+        <div class="toggles">
+          <label><input type="checkbox" id="blurUsernames" /> Blur (privacy)</label>
+          <label class="api"><input type="password" id="apiKey" placeholder="OpenAI API Key" /></label>
+        </div>
+      </section>
+
+      <section class="screenshots">
+        <div class="row">
+          <button id="takeShot">Capture Screenshot</button>
+          <span id="shotInfo" class="muted"></span>
+        </div>
+        <div id="tray" class="tray"></div>
+      </section>
+
+      <section class="send">
+        <button id="send" class="primary">Send</button>
+        <button id="optimize" title="Downscale all screenshots more">Optimize</button>
+        <span id="status" class="status"></span>
+      </section>
+
+      <section class="results">
+        <div class="candidates" id="candidates"></div>
+      </section>
+
+      <section class="composer">
+        <textarea id="composer" placeholder="Mix/mesh your final reply..."></textarea>
+        <div class="row">
+          <button id="copy">Copy</button>
+        </div>
+      </section>
+
+      <details class="log">
+        <summary>Activity Log</summary>
+        <div id="activity"></div>
+      </details>
+    </div>
+    <script type="module" src="./popup.js"></script>
+  </body>
+  </html>

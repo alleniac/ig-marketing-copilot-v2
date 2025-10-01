@@ -1,0 +1,31 @@
+{
+  "manifest_version": 3,
+  "name": "TITAN FORGE SF IG/FB Engagement",
+  "short_name": "TFSF Engage",
+  "version": "0.1.0",
+  "description": "Compose on-brand replies for IG/FB using screenshots + TFSF corpora.",
+  "action": {
+    "default_title": "TFSF Engage",
+    "default_popup": "popup/popup.html"
+  },
+  "permissions": [
+    "activeTab",
+    "tabs",
+    "storage",
+    "scripting",
+    "clipboardWrite"
+  ],
+  "optional_permissions": ["offscreen"],
+  "host_permissions": [
+    "https://api.openai.com/*"
+  ],
+  "icons": {
+    "16": "icons/icon16.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  },
+  "content_security_policy": {
+    "extension_pages": "script-src 'self'; object-src 'self'; connect-src https://api.openai.com"
+  }
+}
+
