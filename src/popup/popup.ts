@@ -2,6 +2,7 @@ import { Candidate, Mode, ModelId, PerTabSession, ScreenshotItem } from '../type
 import { takeScreenshot } from '../capture/screenshot.js';
 import { defaultCorpusPathForMode, loadCorpus } from '../corpora/loader.js';
 import { putSession, listSessions } from '../state/db.js';
+import { loadApiKey, saveApiKey } from '../state/settings.js';
 import { buildPacket, sendWithFallback } from '../openai/client.js';
 
 const byId = <T extends HTMLElement>(id: string) => document.getElementById(id) as T;
@@ -249,6 +250,11 @@ async function onSend() {
 
     const apiKey = elApiKey.value.trim();
     if (!apiKey) throw new Error('Enter OpenAI API key');
+    try {
+      await saveApiKey(apiKey);
+    } catch (err) {
+      console.warn('saveApiKey(send) failed', err);
+    }
 
     const result = await sendWithFallback({ apiKey, preferredModel: session.model, packet, isDM });
     const needsTrim = (t: string) => t.length > maxLen;
@@ -331,6 +337,14 @@ elBlur.addEventListener('change', () => {
   putSession(session);
 });
 
+elApiKey.addEventListener('change', async () => {
+  try {
+    await saveApiKey(elApiKey.value);
+  } catch (err) {
+    console.warn('saveApiKey(change) failed', err);
+  }
+});
+
 console.log('[popup] wiring capture button', { hasButton: !!elTakeShot });
 elTakeShot.addEventListener('click', onTakeScreenshot);
 elSend.addEventListener('click', onSend);
@@ -378,6 +392,14 @@ elOptimize.addEventListener('click', async () => {
   applyCorpusAutoPath();
   updateShotInfo();
   renderTray();
+  try {
+    const storedKey = await loadApiKey();
+    if (storedKey) {
+      elApiKey.value = storedKey;
+    }
+  } catch (err) {
+    console.warn('loadApiKey failed', err);
+  }
   let cands: Candidate[] | undefined = undefined;
   const sessAny: any = session as any;
   if (sessAny && Array.isArray(sessAny.candidates)) {
