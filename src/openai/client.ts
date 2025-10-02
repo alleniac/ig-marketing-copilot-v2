@@ -59,12 +59,15 @@ async function callOpenAI(model: ModelId, apiKey: string, packet: RequestPacket)
   // Note: This uses the Responses API. If needed, switch to Chat Completions per official docs.
   const url = 'https://api.openai.com/v1/responses';
   const input: any[] = [];
-  input.push({ role: 'system', content: [{ type: 'text', text: packet.system }] });
-  input.push({ role: 'developer', content: [{ type: 'text', text: packet.developer }] });
-  const content: any[] = [{ type: 'text', text: packet.user }];
+  input.push({ role: 'system', content: [{ type: 'input_text', text: packet.system }] });
+  input.push({ role: 'developer', content: [{ type: 'input_text', text: packet.developer }] });
+  const content: any[] = [{ type: 'input_text', text: packet.user }];
   for (const att of packet.attachments) {
     if (att.type === 'image') {
-      content.push({ type: 'input_image', image_data: att.data });
+      const data = att.data;
+      if (typeof data === 'string') {
+        content.push({ type: 'input_image', image_url: data });
+      }
     }
   }
   input.push({ role: 'user', content });
@@ -155,7 +158,9 @@ export async function sendWithFallback({ apiKey, preferredModel, packet, isDM }:
   for (const m of sequence) {
     tried.push(m.id);
     try {
+      console.log("packet being: " + JSON.stringify(packet));
       const outputs = await callOpenAI(m.id, apiKey, packet);
+      console.log("outputs being: " + JSON.stringify(outputs));
       const candidates = normalizeToThreeCandidates(outputs, isDM);
       return { modelUsed: m.id, candidates, fallbackChain: tried };
     } catch (e) {
@@ -165,4 +170,3 @@ export async function sendWithFallback({ apiKey, preferredModel, packet, isDM }:
   }
   throw lastError ?? new Error('All model attempts failed');
 }
-

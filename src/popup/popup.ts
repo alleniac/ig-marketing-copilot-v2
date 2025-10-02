@@ -223,8 +223,9 @@ function validatePayloadWarn(): string | null {
 }
 
 async function onSend() {
+  console.log('session status:' + session?.status);
   if (!session) return;
-  if (session.status === 'sending') return;
+  // if (session.status === 'sending') return;
   const warn = validatePayloadWarn();
   if (warn) { setStatus(warn); return; }
 

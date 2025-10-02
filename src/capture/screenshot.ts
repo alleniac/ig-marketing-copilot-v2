@@ -24,13 +24,14 @@ export async function captureVisibleTabPNG(windowId?: number): Promise<string> {
   });
 }
 
-export async function downscaleIfNeeded(dataUrl: string, maxWidth = 2000, blurAll = false): Promise<string> {
+export async function downscaleIfNeeded(dataUrl: string, maxWidth = 1280, blurAll = false): Promise<string> {
   const img = new Image();
   img.src = dataUrl;
   await img.decode();
-  const scale = img.width > maxWidth ? maxWidth / img.width : 1;
-  const w = Math.round(img.width * scale);
-  const h = Math.round(img.height * scale);
+  const targetWidth = img.width > maxWidth ? maxWidth : img.width;
+  const scale = img.width > 0 ? targetWidth / img.width : 1;
+  const w = Math.max(1, Math.round(img.width * scale));
+  const h = Math.max(1, Math.round(img.height * scale));
   const canvas = document.createElement('canvas');
   canvas.width = w;
   canvas.height = h;
@@ -42,12 +43,12 @@ export async function downscaleIfNeeded(dataUrl: string, maxWidth = 2000, blurAl
     (ctx as any).filter = 'blur(3px)';
   }
   ctx.drawImage(img, 0, 0, w, h);
-  return canvas.toDataURL('image/png');
+  return canvas.toDataURL('image/jpeg', 0.95);
 }
 
 export async function takeScreenshot(windowId: number | undefined, note?: string, blurAll?: boolean): Promise<ScreenshotItem> {
   const raw = await captureVisibleTabPNG(windowId);
-  const dataURI = await downscaleIfNeeded(raw, 2000, !!blurAll);
+  const dataURI = await downscaleIfNeeded(raw, 1280, !!blurAll);
   return {
     id: uuid(),
     dataURI,
