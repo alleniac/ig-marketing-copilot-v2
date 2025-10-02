@@ -77,9 +77,10 @@ async function callOpenAI(model: ModelId, apiKey: string, packet: RequestPacket)
     input,
   };
 
-  // Per spec: GPT-5 family must use max_completion_tokens and avoid temperature.
+  // Per spec: GPT-5 family must set max_output_tokens and avoid temperature tweaks.
   if (model === 'gpt-5' || model === 'gpt-5-mini') {
-    body.max_completion_tokens = 800; // generous upper bound; UI trims to constraints later
+    body.max_output_tokens = 1500; // allow room for reasoning tokens + final text
+    body.reasoning = { effort: 'low' };
   } else {
     // For gpt-4o use standard tokens param if needed; omitted for safety.
   }
@@ -99,37 +100,82 @@ async function callOpenAI(model: ModelId, apiKey: string, packet: RequestPacket)
   }
 
   const data = await res.json();
-  // Very conservative parsing. We expect model to return a single text block with 3 candidates, or structured output.
-  const outputs: string[] = [];
-  try {
-    // Try to read assistant content array
-    const out = data.output?.[0]?.content || data.output || data.choices || [];
-    if (Array.isArray(out)) {
-      for (const item of out) {
-        if (typeof item === 'string') outputs.push(item);
-        else if (item?.type === 'output_text' && typeof item?.text === 'string') outputs.push(item.text);
-        else if (item?.message?.content) {
-          if (Array.isArray(item.message.content)) {
-            const textParts = item.message.content.filter((c: any) => c.type === 'text').map((c: any) => c.text);
-            if (textParts.length) outputs.push(textParts.join('\n'));
-          } else if (typeof item.message.content === 'string') outputs.push(item.message.content);
-        }
-      }
-    }
-  } catch {
-    // ignore, fall through
-  }
-  if (outputs.length === 0 && typeof data === 'object') {
-    const text = (data.output_text || data.text || '').toString();
-    if (text) outputs.push(text);
-  }
+  const outputs = extractResponseTexts(data);
   return outputs.length > 0 ? outputs : [''];
+}
+
+function extractResponseTexts(payload: any): string[] {
+  const segments: string[] = [];
+  const seen = new Set<string>();
+
+  const visited = new Set<any>();
+
+  const push = (value: unknown) => {
+    if (typeof value !== 'string') return;
+    const trimmed = value.trim();
+    if (!trimmed || seen.has(trimmed)) return;
+    segments.push(trimmed);
+    seen.add(trimmed);
+  };
+
+  const visit = (node: any): void => {
+    if (node == null) return;
+    if (typeof node === 'string') {
+      push(node);
+      return;
+    }
+    if (typeof node === 'number' || typeof node === 'boolean') {
+      return;
+    }
+    if (Array.isArray(node)) {
+      node.forEach(visit);
+      return;
+    }
+    if (typeof node === 'object') {
+      if (visited.has(node)) return;
+      visited.add(node);
+
+      if (typeof node.value === 'string') push(node.value);
+      if (typeof node.text === 'string') push(node.text);
+      if (node.text && typeof node.text !== 'string') visit(node.text);
+      if (typeof node.output_text === 'string') push(node.output_text);
+      if (node.output_text && typeof node.output_text !== 'string') visit(node.output_text);
+      if (typeof node.content === 'string') push(node.content);
+      if (node.content && typeof node.content !== 'string') visit(node.content);
+      if (typeof node.markdown === 'string') push(node.markdown);
+
+      visit(node.message?.content);
+      visit(node.delta);
+      visit(node.result);
+      visit(node.parts);
+      visit(node.values);
+      visit(node.items);
+      visit(node.choices);
+      visit(node.outputs);
+      visit(node.output);
+      visit(node.response);
+      visit(node.responses);
+      visit(node.data);
+    }
+  };
+  console.log("payload is: " + JSON.stringify(payload));
+  visit(payload?.output);
+  if (segments.length === 0) visit(payload?.output_text);
+  if (segments.length === 0) visit(payload?.choices);
+  if (segments.length === 0) visit(payload?.text);
+
+  return segments;
 }
 
 function enforceLength(text: string, isDM: boolean): string {
   const limit = isDM ? 600 : 220;
   if (text.length <= limit) return text;
   return text.slice(0, limit);
+}
+
+function stripListPrefix(text: string): string {
+  // Remove leading enumerations like "1)", "2.", "-", or bullet characters.
+  return text.replace(/^(?:\d+[\).]\s+|[•*\-]\s+)/, '');
 }
 
 function normalizeToThreeCandidates(texts: string[], isDM: boolean): Candidate[] {
@@ -142,7 +188,9 @@ function normalizeToThreeCandidates(texts: string[], isDM: boolean): Candidate[]
   const cands: string[] = [];
   for (const c of cleaned) {
     if (cands.length >= 3) break;
-    cands.push(enforceLength(c.trim(), isDM));
+    const trimmed = c.trim();
+    const sanitized = stripListPrefix(trimmed) || trimmed;
+    cands.push(enforceLength(sanitized.trim(), isDM));
   }
   while (cands.length < 3) cands.push('');
   return cands.slice(0, 3).map((text, i) => ({ id: `cand-${i + 1}`, text }));
