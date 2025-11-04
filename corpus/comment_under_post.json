@@ -1,8 +1,8 @@
 {
   "style": {
     "tone_words": ["gym_buddy", "energetic", "supportive", "uplifting"],
-    "do": ["Punchy and impressive", "Encourage", "Relate to the grind", "Keep it short"],
-    "dont": ["Share prices", "Sound spammy", "Overpromise"],
+    "do": ["Punchy and impressive", "Encourage", "Relate to the grind", "Keep it short", "Sound human"],
+    "dont": ["Share prices", "Sound spammy", "Overpromise", "Sound like AI chatbot"],
     "emojis_allowed": true
   },
   "constraints": {
