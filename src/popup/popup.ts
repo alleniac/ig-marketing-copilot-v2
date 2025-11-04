@@ -23,6 +23,7 @@ const elComposer = byId<HTMLTextAreaElement>('composer');
 const elCopy = byId<HTMLButtonElement>('copy');
 const elActivity = byId<HTMLDivElement>('activity');
 const elTakeShot = byId<HTMLButtonElement>('takeShot');
+const elClearAll = byId<HTMLButtonElement>('clearAll');
 
 let session: PerTabSession | null = null;
 let sessionInc = 0;
@@ -378,6 +379,22 @@ elOptimize.addEventListener('click', async () => {
     setStatus(`Optimize failed: ${(e as Error).message}`);
     log('optimize_error', { error: String(e) });
   }
+});
+
+elClearAll.addEventListener('click', async () => {
+  if (!session) return;
+  session.manualPrompt = '';
+  session.screenshots = [];
+  elManual.value = '';
+  renderTray();
+  updateShotInfo();
+  try {
+    await putSession(session);
+  } catch (err) {
+    console.warn('putSession(clearAll) failed', err);
+  }
+  setStatus('Cleared manual prompt and screenshots');
+  log('clear_all_clicked');
 });
 
 // Init

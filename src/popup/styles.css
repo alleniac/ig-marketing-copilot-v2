@@ -22,9 +22,9 @@ select, input[type="text"], input[type="password"], textarea { width:100%; paddi
 .send { display:flex; align-items:center; gap:10px; }
 .primary { background:var(--accent); color:#000; border:none; padding:6px 10px; border-radius:6px; cursor:pointer; }
 .status { color:var(--muted); }
+#clearAll { margin-left:auto; }
 .candidates { display:grid; gap:6px; margin:10px 0; }
 .cand { border:1px solid var(--border); border-radius:6px; padding:8px; background:#10131a; }
 .cand .actions { display:flex; gap:8px; margin-top:6px; }
 .composer textarea { width:100%; height:88px; }
 .log { margin-top:10px; }
-
