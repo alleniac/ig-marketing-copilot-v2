@@ -8,7 +8,7 @@
     "clean": "rm -rf dist",
     "build": "npm run clean && tsc -p tsconfig.json && node scripts/copy-static.mjs",
     "dev": "npm run build -- --watch",
-    "test": "npm run build && node --test tests/buildPacket.test.mjs"
+    "test": "npm run build && node --test tests/*.test.mjs"
   },
   "devDependencies": {
     "@types/chrome": "^0.1.16",

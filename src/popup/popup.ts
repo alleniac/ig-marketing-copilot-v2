@@ -4,6 +4,7 @@ import { defaultCorpusPathForMode, loadCorpus } from '../corpora/loader.js';
 import { putSession, listSessions } from '../state/db.js';
 import { loadApiKey, saveApiKey } from '../state/settings.js';
 import { buildPacket, sendWithFallback } from '../openai/client.js';
+import { clearSessionData } from './sessionUtils.js';
 
 const byId = <T extends HTMLElement>(id: string) => document.getElementById(id) as T;
 
@@ -399,9 +400,9 @@ elOptimize.addEventListener('click', async () => {
 
 elClearAll.addEventListener('click', async () => {
   if (!session) return;
-  session.manualPrompt = '';
-  session.screenshots = [];
+  clearSessionData(session);
   elManual.value = '';
+  elPersonName.value = '';
   renderTray();
   updateShotInfo();
   try {
@@ -409,7 +410,7 @@ elClearAll.addEventListener('click', async () => {
   } catch (err) {
     console.warn('putSession(clearAll) failed', err);
   }
-  setStatus('Cleared manual prompt and screenshots');
+  setStatus("Cleared person's name, manual prompt, and screenshots");
   log('clear_all_clicked');
 });
 
