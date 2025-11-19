@@ -15,6 +15,7 @@ export interface BuildPacketParams {
   mode: Mode;
   corpus: CorpusFile;
   manualPrompt?: string;
+  personName?: string;
   screenshots: { id: string; dataURI: string; note?: string }[];
 }
 
@@ -25,7 +26,7 @@ export interface RequestPacket {
   attachments: Array<{ id: string; type: 'image' | 'text'; data: string; label?: string }>;
 }
 
-export function buildPacket({ mode, corpus, manualPrompt, screenshots }: BuildPacketParams): RequestPacket {
+export function buildPacket({ mode, corpus, manualPrompt, personName, screenshots }: BuildPacketParams): RequestPacket {
   const system = `Brand: TITAN FORGE SF (TFSF)\nWhat: Trophy-inspired pendants & chains celebrating bodybuilding’s grind.\nAudience: Fitness athletes, serious gym-goers, bodybuilders, enthusiasts.\nVoice: Gym-buddy energy—supportive, inspiring, uplifting, energetic; sometimes funny, sometimes serious. Respectful; never bash competitors.\nValues: Work ethic, progress > perfection, community, self-respect.\nEmoji policy: Allowed by default.\nTypical CTAs: “Tap in if this speaks to you.” / “DM us if you’re chasing __.” / “Rock it on meet day.” / “Join the squad.”\nGlobal rules: Never quote price unless manual prompt explicitly asks.`;
 
   const developer = `Mode: ${mode}\nStyle: tone_words=${corpus.style.tone_words.join(', ')}; do=${corpus.style.do.join(', ')}; dont=${corpus.style.dont.join(', ')}; emojis_allowed=${corpus.style.emojis_allowed}\nConstraints: max_length_chars=${corpus.constraints.max_length_chars}; cta_policy=${corpus.constraints.cta_policy}; promo_rules.allowPriceMentions=${corpus.constraints.promo_rules.allowPriceMentions}\nPersona: audience=${corpus.persona.audience}; voice=${corpus.persona.voice}; taboo_topics=${corpus.persona.taboo_topics.join(', ')}\nFew-shot example (1): ${corpus.few_shot_examples[0]?.output_text ?? ''}\nOutput: Return exactly 3 distinct candidates.`;
@@ -33,6 +34,10 @@ export function buildPacket({ mode, corpus, manualPrompt, screenshots }: BuildPa
   const userLines: string[] = [];
   if (manualPrompt && manualPrompt.trim()) {
     userLines.push(`Manual prompt: ${manualPrompt.trim()}`);
+  }
+  const trimmedName = personName?.trim();
+  if (trimmedName) {
+    userLines.push(`The name of this person I'm interacting with is ${trimmedName}`);
   }
   userLines.push(`Screenshots provided: ${screenshots.length}`);
   screenshots.forEach((s, idx) => userLines.push(`Screenshot ${idx + 1}${s.note ? ` (${s.note})` : ''}`));

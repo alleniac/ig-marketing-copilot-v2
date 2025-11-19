@@ -10,6 +10,7 @@ const byId = <T extends HTMLElement>(id: string) => document.getElementById(id) 
 const elMode = byId<HTMLSelectElement>('mode');
 const elModel = byId<HTMLSelectElement>('model');
 const elCorpusPath = byId<HTMLInputElement>('corpusPath');
+const elPersonName = byId<HTMLInputElement>('personName');
 const elManual = byId<HTMLTextAreaElement>('manualPrompt');
 const elBlur = byId<HTMLInputElement>('blurUsernames');
 const elApiKey = byId<HTMLInputElement>('apiKey');
@@ -43,6 +44,7 @@ function normalizeSession(raw: Partial<PerTabSession> | null | undefined, window
     mode: (raw?.mode as Mode) ?? 'comment_under_post',
     screenshots,
     manualPrompt: raw?.manualPrompt ?? '',
+    personName: raw?.personName ?? '',
     model: (raw?.model as ModelId) ?? 'gpt-5',
     corpusRef: raw?.corpusRef ?? defaultCorpusPathForMode('comment_under_post'),
     status: raw?.status ?? 'idle',
@@ -168,6 +170,7 @@ async function ensureSession(): Promise<void> {
   elModel.value = session.model;
   elCorpusPath.value = typeof session.corpusRef === 'string' ? session.corpusRef : '';
   elManual.value = session.manualPrompt;
+  elPersonName.value = session.personName ?? '';
   elBlur.checked = !!session.blurUsernames;
   console.log('[popup] ensureSession ready', { windowId: session.windowId, tabId: session.tabId });
 }
@@ -236,6 +239,7 @@ async function onSend() {
   session.mode = mode;
   session.model = elModel.value as ModelId;
   session.manualPrompt = elManual.value;
+  session.personName = elPersonName.value;
   session.corpusRef = corpusPath;
   session.blurUsernames = !!elBlur.checked;
   session.status = 'sending';
@@ -248,7 +252,13 @@ async function onSend() {
     const corpus = await loadCorpus(corpusPath);
     // Enforce length policy proactively
     const maxLen = corpus.constraints.max_length_chars ?? (isDM ? 600 : 220);
-    const packet = buildPacket({ mode, corpus, manualPrompt: session.manualPrompt, screenshots: session.screenshots });
+    const packet = buildPacket({
+      mode,
+      corpus,
+      manualPrompt: session.manualPrompt,
+      personName: elPersonName.value.trim(),
+      screenshots: session.screenshots
+    });
 
     const apiKey = elApiKey.value.trim();
     if (!apiKey) throw new Error('Enter OpenAI API key');
@@ -330,6 +340,12 @@ elCorpusPath.addEventListener('change', () => {
 elManual.addEventListener('input', () => {
   if (!session) return;
   session.manualPrompt = elManual.value;
+  putSession(session);
+});
+
+elPersonName.addEventListener('input', () => {
+  if (!session) return;
+  session.personName = elPersonName.value;
   putSession(session);
 });
 

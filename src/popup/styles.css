@@ -9,6 +9,7 @@ header h1 { margin:0 0 8px; font-size:14px; letter-spacing:0.3px; }
 .controls .grow { flex:1; }
 select, input[type="text"], input[type="password"], textarea { width:100%; padding:6px 8px; border:1px solid var(--border); background:#111318; color:var(--fg); border-radius:6px; }
 .manual { margin:10px 0; }
+.manual input[type="text"] { margin-bottom:6px; }
 .manual textarea { height:64px; }
 .toggles { display:flex; gap:10px; align-items:center; margin-top:6px; }
 .toggles .api { flex:1; }

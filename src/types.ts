@@ -28,6 +28,7 @@ export interface PerTabSession {
   mode: Mode;
   screenshots: ScreenshotItem[];
   manualPrompt: string;
+  personName?: string;
   model: ModelId;
   corpusRef: string | object;
   status: SessionStatus;
