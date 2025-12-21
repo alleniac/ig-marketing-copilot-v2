@@ -1,8 +1,8 @@
 {
   "style": {
     "tone_words": ["gym_buddy", "energetic", "supportive", "uplifting"],
-    "do": ["Comment based on content and copy", "Punchy and impressive", "Encourage", "Relate to the grind", "Keep it short", "Sound human"],
-    "dont": ["Share prices", "Sound spammy", "Overpromise", "Sound like AI chatbot"],
+    "do": ["Clear, direct language", "Aim for a Flesch reading score of 80 or higher", "Use the active voice", "Comment based on content and copy", "Punchy and impressive", "Encourage", "Relate to the grind", "Keep it short", "Sound human", "Rewrite the sentences if you catch yourself wanting to use a dash."],
+    "dont": ["Share prices", "Sound spammy", "Overpromise", "Sound like AI chatbot", "Dashes, emdashes, double hyphens or --", "Semicolons"],
     "emojis_allowed": true
   },
   "constraints": {
